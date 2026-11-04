@@ -8,15 +8,16 @@ import TasksCard from '../components/TasksCard/TasksCard'
 import TimerPanel from '../components/TimerPanel/TimerPanel'
 import TodayCard from '../components/TodayCard/TodayCard'
 import Toast from '../components/Toast/Toast'
-import { pad } from '../lib/pomodoro'
+import { pad, THEMES } from '../lib/pomodoro'
 import { useWpsTimer } from '../lib/useWpsTimer'
 
 const Home: NextPage = () => {
     const app = useWpsTimer()
     const { state: s, th } = app
-    // Idle tab shows just the app name (as in the mockup); while a countdown is running or paused it shows the time left.
+    // The app name always comes first. Idle: "WPS Timer · Pomodoro". Running or paused: time left and current mode.
     const idle = !s.running && s.remaining >= s.runTotal
-    const title = idle ? 'WPS Timer' : `${pad(Math.floor(s.remaining / 60))}:${pad(s.remaining % 60)} | WPS Timer`
+    const time = `${pad(Math.floor(s.remaining / 60))}:${pad(s.remaining % 60)}`
+    const title = idle ? 'WPS Timer · Pomodoro' : `WPS Timer · ${time} ${THEMES[s.mode].label}`
 
     // Keeps the area behind the page (overscroll, safe areas) in the same color as the theme.
     useEffect(() => {
