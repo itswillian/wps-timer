@@ -1,5 +1,5 @@
 import React, { CSSProperties } from 'react'
-import { INK, LIMITS, SOUNDS } from '../../lib/pomodoro'
+import { INK, SOUNDS } from '../../lib/pomodoro'
 import type { WpsTimer } from '../../lib/useWpsTimer'
 import StepButton from '../StepButton/StepButton'
 

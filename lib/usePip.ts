@@ -61,5 +61,3 @@ export function usePip() {
 
     return { supported, win, toggle }
 }
-
-export type Pip = ReturnType<typeof usePip>
