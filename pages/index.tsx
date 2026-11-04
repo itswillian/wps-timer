@@ -1,109 +1,61 @@
 import type { NextPage } from 'next'
 import Head from 'next/head'
-import { useCallback, useEffect, useState } from 'react'
-import Clock from '../components/Clock/Clock'
-import TimerButton from '../components/TimerButton/TimerButton'
-import { timeName, TimeSelector } from '../components/TimeSelector/TimeSelector'
-import styles from '../styles/Home.module.css'
+import { useEffect } from 'react'
+import Header from '../components/Header/Header'
+import NavBar from '../components/NavBar/NavBar'
+import SettingsDialog from '../components/SettingsDialog/SettingsDialog'
+import TasksCard from '../components/TasksCard/TasksCard'
+import TimerPanel from '../components/TimerPanel/TimerPanel'
+import TodayCard from '../components/TodayCard/TodayCard'
+import Toast from '../components/Toast/Toast'
+import { pad } from '../lib/pomodoro'
+import { useWpsTimer } from '../lib/useWpsTimer'
 
 const Home: NextPage = () => {
+    const app = useWpsTimer()
+    const { state: s, th } = app
+    // Idle tab shows just the app name (as in the mockup); while a countdown is running or paused it shows the time left.
+    const idle = !s.running && s.remaining >= s.runTotal
+    const title = idle ? 'WPS Timer' : `${pad(Math.floor(s.remaining / 60))}:${pad(s.remaining % 60)} | WPS Timer`
 
-    const [time, setTime] = useState(25 * 60);
-    const [active, setActive] = useState(false);
-    const [selectedTime, setSelectedTime] = useState<timeName>('Pomodoro')
-
-    const start = useCallback(() => { setActive(true) }, [],)
-
-    const stop = useCallback(() => { setActive(false); selectTime(selectedTime); }, [],)
-
-    function toggleActive() {
-        if (!active) {
-            start();
-        } else {
-            stop();
-        }
-    }
-
-    function getDigits() {
-        let seconds = time % 60
-        let minutes = (time - seconds) / 60
-
-        let secondsDigits = [0, 0]
-        let minutesDigits = [0, 0]
-
-        secondsDigits[1] = (seconds - (seconds % 10)) / 10
-        secondsDigits[0] = seconds % 10
-
-        minutesDigits[1] = (minutes - (minutes % 10)) / 10
-        minutesDigits[0] = minutes % 10
-
-        return {
-            minutes: minutesDigits,
-            seconds: secondsDigits
-        };
-    }
-
-    function selectTime(name: timeName) {
-        setActive(false);
-        setSelectedTime(name);
-        if (name == 'Pomodoro') {
-            setTime(25 * 60);
-        } else if (name == 'Long Break') {
-            setTime(15 * 60);
-        } else if (name == 'Short Break') {
-            setTime(5 * 60);
-        }
-    }
-
+    // Keeps the area behind the page (overscroll, safe areas) in the same color as the theme.
     useEffect(() => {
-        Notification.requestPermission()
-    }, [])
-
-    useEffect(() => {
-        if (active) {
-            const interval = setInterval(() => {
-                if (time == 0) {
-
-                    stop();
-
-                    new Audio('/alarm.wav').play()
-
-                    if (Notification.permission === 'granted') {
-                        new Notification("The time is over!", {
-                            body: `Take a break and start again!`
-                        })
-                    }
-                } else {
-                    setTime(time - 1);
-                }
-            }, 1000);
-
-            return () => {
-                clearInterval(interval);
-            };
-        }
-    }, [time, active]);
-
-    let { minutes, seconds } = getDigits();
+        document.body.style.background = th.bg
+    }, [th.bg])
 
     return (
-        <div className={styles.container}>
+        <>
             <Head>
-                <title>{minutes[1]}{minutes[0]}:{seconds[1]}{seconds[0]} | WPS Timer</title>
+                <title>{title}</title>
+                <meta
+                    name="description"
+                    content="Timer Pomodoro com tarefas, estatísticas do dia e alertas sonoros e por notificação."
+                />
             </Head>
-            <div className={styles.clockContainer}>
-                <div className={styles.contentArea} onClick={start}>
-                    <Clock time={time} getDigits={getDigits} />
-                </div>
-                <div className={styles.timeSelection}>
-                    <TimeSelector name='Pomodoro' selectedTime={selectedTime} selectTime={selectTime} active={active} />
-                    <TimeSelector name='Short Break' selectedTime={selectedTime} selectTime={selectTime} active={active} />
-                    <TimeSelector name='Long Break' selectedTime={selectedTime} selectTime={selectTime} active={active} />
-                </div>
-                <TimerButton toggleActive={toggleActive} active={active} />
-                <footer>© {new Date().getFullYear()} - Willian Pacheco Silva</footer>
+            <div
+                className="shell"
+                style={{
+                    boxSizing: 'border-box',
+                    background: th.bg,
+                    color: '#fff',
+                    fontFamily: "'Instrument Sans',system-ui,sans-serif",
+                    fontSize: 16,
+                    transition: 'background .9s ease'
+                }}
+            >
+                <Header bg={th.bg} onOpenSettings={app.openSettings} />
+                <main className="main">
+                    <TimerPanel app={app} />
+                    <div className={'col-right ' + (s.view === 'timer' ? 'nv-hide' : '')}>
+                        <TasksCard app={app} />
+                        <TodayCard app={app} />
+                    </div>
+                </main>
+                <NavBar view={s.view} bg={th.bg} onChange={app.setView} />
+                <SettingsDialog app={app} />
+                <Toast message={s.toast} />
             </div>
-        </div>
+        </>
     )
 }
 
