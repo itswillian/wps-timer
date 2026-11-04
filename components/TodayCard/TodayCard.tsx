@@ -53,7 +53,9 @@ const TodayCard: React.FC<{ app: WpsTimer }> = ({ app }) => {
                 className="chart-bars"
                 aria-label={chartLabel}
                 style={{
-                    flex: '1 1 150px',
+                    // 210px basis (150px in the mockup): below that the seven day labels overlap on narrow phones,
+                    // so the chart wraps to its own row instead of being squeezed beside the total.
+                    flex: '1 1 210px',
                     minWidth: 0,
                     display: 'grid',
                     gridTemplateColumns: 'repeat(7,minmax(0,1fr))',
