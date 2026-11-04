@@ -2,7 +2,6 @@ import React from 'react'
 import { dateKey, fmtMin, INK, WEEKDAYS } from '../../lib/pomodoro'
 import type { WpsTimer } from '../../lib/useWpsTimer'
 
-const DAY_MS = 24 * 60 * 60 * 1000
 const NBSP = ' '
 
 const TodayCard: React.FC<{ app: WpsTimer }> = ({ app }) => {
@@ -11,7 +10,9 @@ const TodayCard: React.FC<{ app: WpsTimer }> = ({ app }) => {
     // Last 7 days, oldest first; the last bar is today. Before the first client render only placeholders are shown.
     const days = Array.from({ length: 7 }, (_, i) => {
         if (now == null) return { label: NBSP, min: 0, pomos: 0 }
-        const d = new Date(now - (6 - i) * DAY_MS)
+        // Calendar arithmetic, so a daylight saving change never skips or repeats a date.
+        const d = new Date(now)
+        d.setDate(d.getDate() - (6 - i))
         const stat = s.days[dateKey(d)] || { min: 0, pomos: 0 }
         return { label: i === 6 ? 'Hoje' : WEEKDAYS[d.getDay()], min: stat.min, pomos: stat.pomos }
     })

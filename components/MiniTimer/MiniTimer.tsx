@@ -90,7 +90,9 @@ const MiniTimer: React.FC<MiniTimerProps> = ({ app, win }) => {
 
             <div
                 role="timer"
-                aria-label={mm + ' minutos e ' + ss + ' segundos restantes'}
+                aria-label={
+                    mm + (mm === 1 ? ' minuto e ' : ' minutos e ') + ss + (ss === 1 ? ' segundo restante' : ' segundos restantes')
+                }
                 style={{
                     fontFamily: "'Bricolage Grotesque',sans-serif",
                     fontWeight: 700,

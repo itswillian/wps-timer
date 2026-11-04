@@ -175,7 +175,8 @@ export function useWpsTimer() {
         }
         if (toastTimer.current) clearTimeout(toastTimer.current)
         undoFn.current = undo || null
-        pendingMsg.current = null
+        // A new undo toast keeps any queued message so it shows once the undo window ends.
+        if (!undo) pendingMsg.current = null
         update({ toast: msg, toastUndo: !!undo })
         if (undo) {
             setTimeout(() => {
