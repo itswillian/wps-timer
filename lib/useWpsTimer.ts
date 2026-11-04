@@ -171,8 +171,22 @@ export function useWpsTimer() {
     const say = (msg: string, undo?: () => string) => {
         if (!undo && undoFn.current) {
             // Several messages can arrive during one undo window; they are joined so none is lost.
-            pendingMsg.current = pendingMsg.current ? pendingMsg.current + ' ' + msg : msg
+            const queued = pendingMsg.current
+            if (!queued) pendingMsg.current = msg
+            else if (!queued.includes(msg)) pendingMsg.current = queued.length > 160 ? msg : queued + ' ' + msg
             return
+        }
+        if (undo && undoFn.current) {
+            // A second undoable action inside the window: one "Desfazer" restores both, newest first,
+            // so the earlier deletion is never lost.
+            const older = undoFn.current
+            const newer = undo
+            undo = () => {
+                newer()
+                older()
+                return 'Tarefas restauradas.'
+            }
+            msg = 'Várias tarefas removidas.'
         }
         if (toastTimer.current) clearTimeout(toastTimer.current)
         undoFn.current = undo || null
