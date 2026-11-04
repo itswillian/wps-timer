@@ -15,16 +15,26 @@ const TasksCard: React.FC<{ app: WpsTimer }> = ({ app }) => {
     const { state: s, th, now } = app
     const open = s.tasks.filter((t) => !t.complete)
     const left = open.reduce((a, t) => a + Math.max(t.est - t.done, 0), 0)
-    const mins = left > 0 ? left * s.settings.focus + (left - 1) * s.settings.short : 0
+    const st = s.settings
+    let mins = 0
+    if (left > 0) {
+        // Simulates the real sequence: the current/remaining focus, then short breaks and a long one every `cycle` focuses.
+        let fc = s.mode === 'long' ? 0 : s.focusCount
+        mins = s.mode === 'focus' ? s.remaining / 60 : s.remaining / 60 + st.focus
+        for (let k = 1; k < left; k++) {
+            fc += 1
+            mins += (fc % st.cycle === 0 ? st.long : st.short) + st.focus
+        }
+    }
+    // Before the first client render there is no clock yet, so the end time is left out (keeps hydration identical).
     const endTxt =
         now == null
             ? ''
-            : ' Término estimado: ' +
-              new Date(now + mins * 60000).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }) +
-              '.'
+            : ' · fim às ' +
+              new Date(now + mins * 60000).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
     const estimateText =
         left > 0
-            ? left + (left === 1 ? ' pomodoro restante.' : ' pomodoros restantes.') + endTxt
+            ? left + (left === 1 ? ' pomodoro restante' : ' pomodoros restantes') + endTxt
             : 'Nenhum pomodoro pendente.'
 
     const renderEditing = (t: Task) => (
@@ -37,16 +47,16 @@ const TasksCard: React.FC<{ app: WpsTimer }> = ({ app }) => {
                 onKeyDown={(e) => {
                     if (e.key === 'Escape') {
                         e.stopPropagation()
-                        app.cancelEdit()
+                        app.cancelEdit(t.id)
                     }
                 }}
                 style={{
                     display: 'flex',
                     flexDirection: 'column',
-                    gap: 8,
-                    padding: 10,
-                    borderRadius: 14,
-                    border: '2px solid ' + th.bg,
+                    gap: 12,
+                    padding: 14,
+                    borderRadius: 16,
+                    border: '1.5px solid ' + th.bg,
                     background: '#fff'
                 }}
             >
@@ -58,14 +68,14 @@ const TasksCard: React.FC<{ app: WpsTimer }> = ({ app }) => {
                     value={s.editText}
                     onChange={(e) => app.setEditText(e.target.value)}
                     style={{
-                        height: 44,
+                        height: 48,
                         boxSizing: 'border-box',
-                        padding: '0 14px',
+                        padding: '0 16px',
                         borderRadius: 12,
-                        border: '2px solid #7C869A',
+                        border: '1px solid #8A93A6',
                         fontSize: 16,
                         color: INK,
-                        background: '#fff',
+                        background: '#F1F3F8',
                         width: '100%',
                         minWidth: 0
                     }}
@@ -96,7 +106,7 @@ const TasksCard: React.FC<{ app: WpsTimer }> = ({ app }) => {
                         aria-label={'Excluir tarefa: ' + t.title}
                         style={{
                             minHeight: 44,
-                            padding: '0 12px',
+                            padding: 0,
                             fontSize: 15,
                             fontWeight: 600,
                             color: '#B3261E',
@@ -108,12 +118,12 @@ const TasksCard: React.FC<{ app: WpsTimer }> = ({ app }) => {
                     <div style={{ display: 'flex', gap: 8 }}>
                         <button
                             type="button"
-                            onClick={app.cancelEdit}
+                            onClick={() => app.cancelEdit(t.id)}
                             style={{
-                                minHeight: 44,
-                                padding: '0 16px',
+                                minHeight: 48,
+                                padding: '0 20px',
                                 borderRadius: 999,
-                                border: '2px solid #7C869A',
+                                border: '1px solid #8A93A6',
                                 fontWeight: 600,
                                 fontSize: 15
                             }}
@@ -123,8 +133,8 @@ const TasksCard: React.FC<{ app: WpsTimer }> = ({ app }) => {
                         <button
                             type="submit"
                             style={{
-                                minHeight: 44,
-                                padding: '0 20px',
+                                minHeight: 48,
+                                padding: '0 24px',
                                 borderRadius: 999,
                                 background: th.bg,
                                 color: '#fff',
@@ -150,9 +160,10 @@ const TasksCard: React.FC<{ app: WpsTimer }> = ({ app }) => {
                     alignItems: 'center',
                     gap: 2,
                     padding: '0 4px 0 2px',
-                    borderRadius: 14,
-                    border: '2px solid ' + (sel ? th.bg : 'transparent'),
-                    background: sel ? 'color-mix(in srgb, ' + th.bg + ' 8%, white)' : '#F5F7FB'
+                    borderRadius: 16,
+                    border: '1.5px solid ' + (sel ? th.bg : 'transparent'),
+                    background: sel ? 'color-mix(in srgb, ' + th.bg + ' 8%, white)' : '#F5F7FB',
+                    transition: 'background .2s ease,border-color .2s ease'
                 }}
             >
                 <button
@@ -235,6 +246,7 @@ const TasksCard: React.FC<{ app: WpsTimer }> = ({ app }) => {
                     {t.done + '/' + t.est}
                 </span>
                 <button
+                    data-edit-id={t.id}
                     aria-label={'Editar tarefa: ' + t.title}
                     onClick={() => app.startEdit(t)}
                     style={{
@@ -273,13 +285,14 @@ const TasksCard: React.FC<{ app: WpsTimer }> = ({ app }) => {
             className={'panel card-tasks ' + (s.view === 'today' ? 'nv-hide' : '')}
             aria-labelledby="tasks-title"
             style={{
-                background: '#fff',
+                background: '#FCFAF8',
                 color: INK,
-                borderRadius: 20,
-                padding: 16,
+                borderRadius: 24,
+                padding: 20,
+                boxShadow: '0 14px 36px rgba(20,10,8,.20),0 2px 4px rgba(20,10,8,.10)',
                 display: 'flex',
                 flexDirection: 'column',
-                gap: 12
+                gap: 14
             }}
         >
             <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 12 }}>
@@ -301,7 +314,7 @@ const TasksCard: React.FC<{ app: WpsTimer }> = ({ app }) => {
                             padding: 0,
                             display: 'flex',
                             flexDirection: 'column',
-                            gap: 6
+                            gap: 8
                         }}
                     >
                         {s.tasks.map((t) => (s.editId === t.id ? renderEditing(t) : renderTask(t)))}
@@ -327,8 +340,8 @@ const TasksCard: React.FC<{ app: WpsTimer }> = ({ app }) => {
                     display: 'flex',
                     flexWrap: 'wrap',
                     alignItems: 'center',
-                    gap: 8,
-                    paddingTop: 12,
+                    gap: 10,
+                    paddingTop: 16,
                     borderTop: '1px solid #E3E7EF'
                 }}
             >
@@ -357,10 +370,10 @@ const TasksCard: React.FC<{ app: WpsTimer }> = ({ app }) => {
                         boxSizing: 'border-box',
                         padding: '0 16px',
                         borderRadius: 12,
-                        border: '2px solid #7C869A',
+                        border: '1px solid #8A93A6',
                         fontSize: 16,
                         color: INK,
-                        background: '#fff',
+                        background: '#F1F3F8',
                         flex: '1 1 100%',
                         minWidth: 0
                     }}
@@ -379,12 +392,12 @@ const TasksCard: React.FC<{ app: WpsTimer }> = ({ app }) => {
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'space-between',
-                        gap: 8,
+                        gap: 12,
                         flexWrap: 'wrap'
                     }}
                 >
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                        <span style={STEP_LABEL}>Pomodoros</span>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                        <span style={{ ...STEP_LABEL, marginRight: 8 }}>Pomodoros</span>
                         <StepButton kind="minus" label="Diminuir pomodoros estimados" onClick={() => app.stepNewEst(-1)} />
                         <span style={STEP_VALUE}>{s.newEst}</span>
                         <StepButton kind="plus" label="Aumentar pomodoros estimados" onClick={() => app.stepNewEst(1)} />
@@ -392,6 +405,7 @@ const TasksCard: React.FC<{ app: WpsTimer }> = ({ app }) => {
                     <button
                         type="submit"
                         style={{
+                            flex: '1 1 170px',
                             height: 48,
                             padding: '0 22px',
                             borderRadius: 999,
@@ -407,7 +421,15 @@ const TasksCard: React.FC<{ app: WpsTimer }> = ({ app }) => {
                 </div>
             </form>
 
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
+            <div
+                style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    gap: '4px 12px',
+                    flexWrap: 'wrap'
+                }}
+            >
                 <p style={{ margin: 0, fontSize: 14, color: '#5B6475', lineHeight: 1.4 }}>{estimateText}</p>
                 {s.tasks.some((t) => t.complete) && (
                     <button

@@ -17,7 +17,7 @@ const StepButton: React.FC<StepButtonProps> = ({ kind, label, onClick, type = 'b
             width: 44,
             height: 44,
             borderRadius: '50%',
-            border: '2px solid #7C869A',
+            border: '1px solid #8A93A6',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center'

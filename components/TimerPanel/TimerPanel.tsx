@@ -15,7 +15,7 @@ const ROUND_BUTTON: CSSProperties = {
     width: 52,
     height: 52,
     borderRadius: '50%',
-    background: 'rgba(0,0,0,.22)',
+    background: 'rgba(0,0,0,.16)',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center'
@@ -70,9 +70,9 @@ const TimerPanel: React.FC<{ app: WpsTimer }> = ({ app }) => {
                     gap: 6,
                     padding: 6,
                     borderRadius: 999,
-                    background: 'rgba(0,0,0,.2)',
+                    background: 'rgba(0,0,0,.14)',
                     width: '100%',
-                    maxWidth: 440,
+                    maxWidth: 'var(--w,440px)',
                     boxSizing: 'border-box'
                 }}
             >
@@ -102,7 +102,7 @@ const TimerPanel: React.FC<{ app: WpsTimer }> = ({ app }) => {
                     {
                         position: 'relative',
                         flex: 'none',
-                        width: 'min(440px,100%,max(240px,calc(100dvh - 416px)))',
+                        width: 'min(var(--w,440px),100%,max(240px,calc(100dvh - 416px)))',
                         aspectRatio: '1/1',
                         containerType: 'inline-size'
                     } as CSSProperties
@@ -113,7 +113,7 @@ const TimerPanel: React.FC<{ app: WpsTimer }> = ({ app }) => {
                         cx="200"
                         cy="200"
                         r="180"
-                        style={{ fill: 'none', stroke: 'rgba(255,255,255,.2)', strokeWidth: 14 }}
+                        style={{ fill: 'none', stroke: 'rgba(255,255,255,.18)', strokeWidth: 9 }}
                     />
                     <circle
                         cx="200"
@@ -123,7 +123,7 @@ const TimerPanel: React.FC<{ app: WpsTimer }> = ({ app }) => {
                             {
                                 fill: 'none',
                                 stroke: '#fff',
-                                strokeWidth: 14,
+                                strokeWidth: 9,
                                 strokeLinecap: 'round',
                                 strokeDasharray: circ.toFixed(2),
                                 strokeDashoffset: dash.toFixed(2),
@@ -154,7 +154,7 @@ const TimerPanel: React.FC<{ app: WpsTimer }> = ({ app }) => {
                             display: 'flex',
                             alignItems: 'baseline',
                             fontFamily: "'Bricolage Grotesque',sans-serif",
-                            fontWeight: 700,
+                            fontWeight: 600,
                             fontSize: '21cqw',
                             lineHeight: 1,
                             letterSpacing: '-0.02em',
@@ -171,7 +171,7 @@ const TimerPanel: React.FC<{ app: WpsTimer }> = ({ app }) => {
                         style={{
                             padding: '4px 14px',
                             borderRadius: 999,
-                            background: 'rgba(0,0,0,.22)',
+                            background: 'rgba(0,0,0,.16)',
                             fontWeight: 600,
                             fontSize: 'max(13px,3.4cqw)'
                         }}
@@ -185,14 +185,14 @@ const TimerPanel: React.FC<{ app: WpsTimer }> = ({ app }) => {
                 aria-live="polite"
                 style={{
                     width: '100%',
-                    maxWidth: 440,
+                    maxWidth: 'var(--w,440px)',
                     boxSizing: 'border-box',
                     display: 'flex',
                     alignItems: 'center',
                     gap: 12,
                     padding: '8px 8px 8px 16px',
                     borderRadius: 16,
-                    background: 'rgba(0,0,0,.2)',
+                    background: 'rgba(0,0,0,.14)',
                     animation: (s.animTick % 2 ? 'chipA' : 'chipB') + ' .45s cubic-bezier(.2,.8,.2,1)'
                 }}
             >
@@ -243,7 +243,7 @@ const TimerPanel: React.FC<{ app: WpsTimer }> = ({ app }) => {
                     justifyContent: 'center',
                     gap: 16,
                     width: '100%',
-                    maxWidth: 440
+                    maxWidth: 'var(--w,440px)'
                 }}
             >
                 <button aria-label="Reiniciar timer" title="Reiniciar timer" onClick={app.reset} style={ROUND_BUTTON}>
@@ -253,6 +253,7 @@ const TimerPanel: React.FC<{ app: WpsTimer }> = ({ app }) => {
                     </svg>
                 </button>
                 <button
+                    className="btn-primary"
                     onClick={app.toggle}
                     style={{
                         flex: '1 1 auto',

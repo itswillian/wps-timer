@@ -47,17 +47,18 @@ const SettingsDialog: React.FC<{ app: WpsTimer }> = ({ app }) => {
             }}
         >
             <div
-                className="panel"
+                className="panel dlg"
                 role="dialog"
                 aria-modal="true"
                 aria-labelledby="cfg-title"
                 tabIndex={-1}
                 style={{
                     outline: 'none',
-                    background: '#fff',
+                    background: '#FCFAF8',
                     color: INK,
-                    borderRadius: 24,
-                    padding: 24,
+                    borderRadius: 28,
+                    padding: 28,
+                    boxShadow: '0 24px 70px rgba(10,6,20,.45)',
                     width: '100%',
                     maxWidth: 480,
                     maxHeight: '100%',
@@ -217,9 +218,9 @@ const SettingsDialog: React.FC<{ app: WpsTimer }> = ({ app }) => {
                             s.notif === 'on'
                                 ? 'Desativar notificações'
                                 : s.notif === 'blocked'
-                                ? 'Notificações bloqueadas no navegador'
+                                ? 'Indisponível: notificações bloqueadas no navegador'
                                 : s.notif === 'unsupported'
-                                ? 'Notificações não disponíveis neste navegador'
+                                ? 'Indisponível: notificações não disponíveis neste navegador'
                                 : 'Ativar notificações'
                         }
                         disabled={unavailable}

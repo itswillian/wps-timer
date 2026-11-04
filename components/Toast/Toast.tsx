@@ -1,8 +1,15 @@
 import React from 'react'
 import { INK } from '../../lib/pomodoro'
 
-const Toast: React.FC<{ message: string }> = ({ message }) => (
+interface ToastProps {
+    message: string
+    undo: boolean
+    onUndo: () => void
+}
+
+const Toast: React.FC<ToastProps> = ({ message, undo, onUndo }) => (
     <div
+        className="toast-wrap"
         role="status"
         aria-live="polite"
         style={{
@@ -21,17 +28,42 @@ const Toast: React.FC<{ message: string }> = ({ message }) => (
         {message !== '' && (
             <div
                 style={{
+                    pointerEvents: 'auto',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px 16px',
                     background: INK,
                     color: '#fff',
-                    padding: '14px 20px',
-                    borderRadius: 14,
+                    padding: 8,
+                    borderRadius: 16,
+                    boxShadow: '0 12px 32px rgba(0,0,0,.35)',
                     fontWeight: 500,
                     fontSize: 15,
                     lineHeight: 1.4,
-                    maxWidth: 420
+                    maxWidth: 460,
+                    minHeight: 44,
+                    boxSizing: 'border-box'
                 }}
             >
-                {message}
+                <span style={{ padding: '6px 12px', textAlign: 'center', minWidth: 0, overflowWrap: 'anywhere' }}>{message}</span>
+                {undo && (
+                    <button
+                        id="undo-btn"
+                        onClick={onUndo}
+                        style={{
+                            flex: 'none',
+                            minHeight: 44,
+                            padding: '0 16px',
+                            borderRadius: 12,
+                            background: 'rgba(255,255,255,.12)',
+                            color: '#FFC857',
+                            fontWeight: 700,
+                            fontSize: 15
+                        }}
+                    >
+                        Desfazer
+                    </button>
+                )}
             </div>
         )}
     </div>

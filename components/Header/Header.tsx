@@ -15,7 +15,7 @@ const PILL: CSSProperties = {
     minHeight: 44,
     padding: '0 16px',
     borderRadius: 999,
-    background: 'rgba(0,0,0,.22)',
+    background: 'rgba(0,0,0,.16)',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
@@ -82,7 +82,8 @@ const Header: React.FC<HeaderProps> = ({ bg, onOpenSettings, pip }) => (
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             {pip.supported && (
                 <button
-                    aria-label={pip.open ? 'Fechar miniatura flutuante' : 'Abrir miniatura flutuante'}
+                    className="pip-btn"
+                    aria-label="Miniatura flutuante"
                     aria-pressed={pip.open}
                     title="Miniatura flutuante do timer"
                     onClick={pip.onToggle}

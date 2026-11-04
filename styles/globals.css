@@ -2,8 +2,31 @@ html,
 body {
     margin: 0;
     padding: 0;
-    background: #bf3a28;
+    background: #c03a27;
     transition: background 0.9s ease;
+}
+
+body {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+.dlg > * {
+    flex-shrink: 0;
+}
+
+.btn-primary {
+    box-shadow: 0 10px 26px rgba(0, 0, 0, 0.22), 0 2px 4px rgba(0, 0, 0, 0.14);
+    transition: color 0.9s ease, transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.btn-primary:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 14px 30px rgba(0, 0, 0, 0.26), 0 2px 4px rgba(0, 0, 0, 0.14);
+}
+
+.btn-primary:active {
+    transform: scale(0.98);
 }
 
 button {
@@ -65,21 +88,26 @@ input {
     display: flex;
     flex-direction: column;
     gap: 16px;
+    justify-content: center;
 }
 
 .card-tasks {
-    flex: 8 1 0%;
+    flex: 0 1 auto;
     min-height: 0;
 }
 
 .card-today {
-    flex: 2 1 0%;
-    min-height: 148px;
+    flex: 0 0 auto;
+    min-height: 0;
+}
+
+.chart-bars {
+    height: 120px;
 }
 
 .tasks-scroll {
     flex: 1 1 auto;
-    min-height: 96px;
+    min-height: 150px;
     overflow-y: auto;
 }
 
@@ -97,8 +125,8 @@ input {
         padding-bottom: 16px;
     }
     .col-left {
-        flex: none;
-        justify-content: flex-start;
+        flex: 1 0 auto;
+        justify-content: center;
         gap: 20px;
     }
     .col-right {
@@ -115,7 +143,7 @@ input {
         min-height: 0;
     }
     .chart-bars {
-        height: 120px;
+        height: clamp(130px, 30dvh, 260px);
     }
     .tasks-scroll {
         overflow: visible;
@@ -126,10 +154,16 @@ input {
         grid-template-columns: repeat(3, minmax(0, 1fr));
         gap: 8px;
         padding: 8px 12px 12px;
-        background: rgba(0, 0, 0, 0.2);
+        background: rgba(0, 0, 0, 0.14);
     }
     .nv-hide {
         display: none !important;
+    }
+    .pip-btn {
+        display: none !important;
+    }
+    .toast-wrap {
+        bottom: 88px !important;
     }
 }
 
@@ -199,6 +233,27 @@ input {
             opacity: 1;
             transform: none;
         }
+    }
+}
+
+@media (min-width: 1000px) and (min-height: 980px) {
+    .col-left {
+        --w: 520px;
+    }
+}
+
+@media (min-width: 1000px) and (max-height: 939px) {
+    .chart-bars {
+        height: 96px;
+    }
+}
+
+@media (min-width: 1000px) and (max-width: 1139px) {
+    .chart-bars {
+        gap: 3px !important;
+    }
+    .chart-bars span {
+        font-size: 10.5px !important;
     }
 }
 

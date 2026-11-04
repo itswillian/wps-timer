@@ -79,7 +79,7 @@ const Home: NextPage = () => {
                 </main>
                 <NavBar view={s.view} bg={th.bg} onChange={app.setView} />
                 <SettingsDialog app={app} />
-                <Toast message={s.toast} />
+                <Toast message={s.toast} undo={s.toastUndo} onUndo={app.undoToast} />
                 {pip.win && createPortal(<MiniTimer app={app} win={pip.win} />, pip.win.document.body)}
             </div>
         </>

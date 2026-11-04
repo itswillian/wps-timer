@@ -25,10 +25,11 @@ const TodayCard: React.FC<{ app: WpsTimer }> = ({ app }) => {
             className={'panel card-today ' + (s.view === 'tasks' ? 'nv-hide' : '')}
             aria-labelledby="today-title"
             style={{
-                background: '#fff',
+                background: '#FCFAF8',
                 color: INK,
-                borderRadius: 20,
+                borderRadius: 24,
                 padding: 20,
+                boxShadow: '0 14px 36px rgba(20,10,8,.20),0 2px 4px rgba(20,10,8,.10)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'space-between',
@@ -52,9 +53,7 @@ const TodayCard: React.FC<{ app: WpsTimer }> = ({ app }) => {
                 className="chart-bars"
                 aria-label={chartLabel}
                 style={{
-                    // 210px basis (150px in the mockup): below that the seven day labels overlap on narrow phones,
-                    // so the chart wraps to its own row instead of being squeezed beside the total.
-                    flex: '1 1 210px',
+                    flex: '1 1 150px',
                     minWidth: 0,
                     display: 'grid',
                     gridTemplateColumns: 'repeat(7,minmax(0,1fr))',

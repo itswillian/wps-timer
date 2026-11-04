@@ -43,6 +43,7 @@ export interface AppState {
     view: View
     showSettings: boolean
     toast: string
+    toastUndo: boolean
 }
 
 const initialState = (): AppState => ({
@@ -70,10 +71,20 @@ const initialState = (): AppState => ({
     notifOff: false,
     view: 'timer',
     showSettings: false,
-    toast: ''
+    toast: '',
+    toastUndo: false
 })
 
 type Patch = Partial<AppState>
+
+// A removed task and the position it had, so "Desfazer" can put it back where it was.
+interface Removed {
+    t: Task
+    i: number
+}
+
+const UNDO_MS = 10000
+const TOAST_MS = 6000
 
 export function useWpsTimer() {
     const [state, setState] = useState<AppState>(initialState)
@@ -83,6 +94,9 @@ export function useWpsTimer() {
     const ref = useRef<AppState>(state)
     const tickRef = useRef<() => void>(() => {})
     const toastTimer = useRef<ReturnType<typeof setTimeout>>()
+    // While an undo toast is up, other messages wait here instead of replacing it.
+    const undoFn = useRef<(() => string) | null>(null)
+    const pendingMsg = useRef<string | null>(null)
     const opener = useRef<HTMLElement | null>(null)
     const closeButton = useRef<HTMLButtonElement>(null)
     const chipKey = useRef<string | undefined>(undefined)
@@ -154,11 +168,60 @@ export function useWpsTimer() {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [state.selected, state.mode])
 
-    const say = (msg: string) => {
+    const say = (msg: string, undo?: () => string) => {
+        if (!undo && undoFn.current) {
+            pendingMsg.current = msg
+            return
+        }
         if (toastTimer.current) clearTimeout(toastTimer.current)
-        update({ toast: msg })
-        toastTimer.current = setTimeout(() => update({ toast: '' }), 6000)
+        undoFn.current = undo || null
+        pendingMsg.current = null
+        update({ toast: msg, toastUndo: !!undo })
+        if (undo) {
+            setTimeout(() => {
+                const b = document.getElementById('undo-btn')
+                if (b) b.focus()
+            }, 30)
+        }
+        toastTimer.current = setTimeout(
+            () => {
+                undoFn.current = null
+                const next = pendingMsg.current
+                pendingMsg.current = null
+                if (next) say(next)
+                else update({ toast: '', toastUndo: false })
+            },
+            undo ? UNDO_MS : TOAST_MS
+        )
     }
+
+    const undoToast = () => {
+        const fn = undoFn.current
+        undoFn.current = null
+        if (toastTimer.current) clearTimeout(toastTimer.current)
+        const waiting = pendingMsg.current
+        pendingMsg.current = null
+        if (fn) {
+            const msg = fn()
+            say((msg || 'Desfeito.') + (waiting ? ' ' + waiting : ''))
+        } else {
+            update({ toast: '', toastUndo: false })
+        }
+    }
+
+    const restoreTasks = (removed: Removed[]) =>
+        update((s) => {
+            const arr = [...s.tasks]
+            removed.forEach(({ t, i }) => arr.splice(Math.min(i, arr.length), 0, t))
+            return { tasks: arr, selected: pickSelected(arr, s.selected) }
+        })
+
+    // Puts the focus back on the "Editar" button of a task after its edit form closes.
+    const focusEdit = (id: number) =>
+        setTimeout(() => {
+            const b = document.querySelector<HTMLElement>('[data-edit-id="' + id + '"]')
+            if (b) b.focus()
+        }, 30)
 
     const advance = (counted: boolean) => {
         const s = ref.current
@@ -305,7 +368,10 @@ export function useWpsTimer() {
     }
 
     const startEdit = (t: Task) => update({ editId: t.id, editText: t.title, editEst: t.est, editError: false })
-    const cancelEdit = () => update({ editId: null, editError: false })
+    const cancelEdit = (id: number) => {
+        update({ editId: null, editError: false })
+        focusEdit(id)
+    }
     const setEditText = (v: string) => update({ editText: v, editError: false })
     const stepEditEst = (d: number) => update((s) => ({ editEst: Math.min(12, Math.max(1, s.editEst + d)) }))
 
@@ -322,18 +388,33 @@ export function useWpsTimer() {
             editError: false
         })
         say('Tarefa atualizada.')
+        focusEdit(id)
     }
 
     const removeTask = (t: Task) => {
         const s = ref.current
+        const idx = s.tasks.findIndex((x) => x.id === t.id)
+        if (idx < 0) return
+        const full = s.tasks[idx]
         const nt = s.tasks.filter((x) => x.id !== t.id)
-        update({ tasks: nt, editId: null, editError: false, selected: pickSelected(nt, s.selected) })
-        say('Tarefa excluída: ' + t.title)
+        update({
+            tasks: nt,
+            editId: s.editId === t.id ? null : s.editId,
+            editError: false,
+            selected: pickSelected(nt, s.selected)
+        })
+        say('Tarefa excluída: ' + t.title, () => {
+            restoreTasks([{ t: full, i: idx }])
+            return 'Tarefa restaurada.'
+        })
     }
 
     const selectTask = (t: Task) => {
         if (t.complete) return
-        update((s) => ({ selected: t.id, runTask: s.running && s.mode === 'focus' ? t.id : s.runTask }))
+        update((s) => ({
+            selected: t.id,
+            runTask: s.mode === 'focus' && (s.running || s.remaining < s.runTotal) ? t.id : s.runTask
+        }))
     }
 
     const toggleComplete = (t: Task) => {
@@ -344,8 +425,24 @@ export function useWpsTimer() {
 
     const clearDone = () => {
         const s = ref.current
+        const removed: Removed[] = []
+        s.tasks.forEach((t, i) => {
+            if (t.complete) removed.push({ t, i })
+        })
+        if (!removed.length) return
         const nt = s.tasks.filter((t) => !t.complete)
-        update({ tasks: nt, selected: pickSelected(nt, s.selected) })
+        update({
+            tasks: nt,
+            editId: removed.some((r) => r.t.id === s.editId) ? null : s.editId,
+            selected: pickSelected(nt, s.selected)
+        })
+        say(
+            removed.length === 1 ? '1 tarefa concluída removida.' : removed.length + ' tarefas concluídas removidas.',
+            () => {
+                restoreTasks(removed)
+                return removed.length === 1 ? 'Tarefa restaurada.' : 'Tarefas restauradas.'
+            }
+        )
     }
 
     const toggleNotif = () => {
@@ -439,6 +536,7 @@ export function useWpsTimer() {
         selectTask,
         toggleComplete,
         clearDone,
+        undoToast,
         toggleNotif,
         openSettings,
         closeSettings,

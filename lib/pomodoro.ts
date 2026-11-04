@@ -30,9 +30,9 @@ export const MODES: Mode[] = ['focus', 'short', 'long']
 export const SOUNDS: SoundName[] = ['Sino', 'Madeira', 'Digital']
 
 export const THEMES: Record<Mode, { bg: string; calm: string; label: string }> = {
-    focus: { bg: '#BF3A28', calm: '#52262B', label: 'Foco' },
-    short: { bg: '#1E6B52', calm: '#173A31', label: 'Pausa curta' },
-    long: { bg: '#2F45B5', calm: '#1D2760', label: 'Pausa longa' }
+    focus: { bg: '#C03A27', calm: '#52262B', label: 'Foco' },
+    short: { bg: '#1E6F54', calm: '#173A31', label: 'Pausa curta' },
+    long: { bg: '#2F46B8', calm: '#1D2760', label: 'Pausa longa' }
 }
 
 export const INK = '#1C2230'

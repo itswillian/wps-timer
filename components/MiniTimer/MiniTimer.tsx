@@ -15,7 +15,7 @@ const ROUND_BUTTON: CSSProperties = {
     width: 44,
     height: 44,
     borderRadius: '50%',
-    background: 'rgba(0,0,0,.22)',
+    background: 'rgba(0,0,0,.16)',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center'
@@ -80,7 +80,7 @@ const MiniTimer: React.FC<MiniTimerProps> = ({ app, win }) => {
                 style={{
                     padding: '3px 12px',
                     borderRadius: 999,
-                    background: 'rgba(0,0,0,.22)',
+                    background: 'rgba(0,0,0,.16)',
                     fontWeight: 600,
                     fontSize: 13
                 }}
