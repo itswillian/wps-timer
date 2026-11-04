@@ -170,7 +170,8 @@ export function useWpsTimer() {
 
     const say = (msg: string, undo?: () => string) => {
         if (!undo && undoFn.current) {
-            pendingMsg.current = msg
+            // Several messages can arrive during one undo window; they are joined so none is lost.
+            pendingMsg.current = pendingMsg.current ? pendingMsg.current + ' ' + msg : msg
             return
         }
         if (toastTimer.current) clearTimeout(toastTimer.current)
