@@ -87,6 +87,8 @@ export function useWpsTimer() {
     const opener = useRef<HTMLElement | null>(null)
     const closeButton = useRef<HTMLButtonElement>(null)
     const chipKey = useRef<string | undefined>(undefined)
+    // Stable reference so the Picture-in-Picture window can drive the countdown without re-registering its interval.
+    const tickNow = useRef(() => tickRef.current()).current
 
     // Keeps a ref with the latest state so timers and handlers never read a stale copy.
     const update = (p: Patch | ((s: AppState) => Patch)) => {
@@ -419,6 +421,7 @@ export function useWpsTimer() {
         th,
         ink: INK,
         closeButton,
+        tick: tickNow,
         selectMode,
         toggle,
         reset,

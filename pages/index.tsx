@@ -1,7 +1,9 @@
 import type { NextPage } from 'next'
 import Head from 'next/head'
 import { useEffect } from 'react'
+import { createPortal } from 'react-dom'
 import Header from '../components/Header/Header'
+import MiniTimer from '../components/MiniTimer/MiniTimer'
 import NavBar from '../components/NavBar/NavBar'
 import SettingsDialog from '../components/SettingsDialog/SettingsDialog'
 import TasksCard from '../components/TasksCard/TasksCard'
@@ -9,10 +11,13 @@ import TimerPanel from '../components/TimerPanel/TimerPanel'
 import TodayCard from '../components/TodayCard/TodayCard'
 import Toast from '../components/Toast/Toast'
 import { pad, THEMES } from '../lib/pomodoro'
+import { usePip } from '../lib/usePip'
+import { prepareAudio } from '../lib/sound'
 import { useWpsTimer } from '../lib/useWpsTimer'
 
 const Home: NextPage = () => {
     const app = useWpsTimer()
+    const pip = usePip()
     const { state: s, th } = app
     // The app name always comes first. Idle: "WPS Timer · Pomodoro". Running or paused: time left and current mode.
     const idle = !s.running && s.remaining >= s.runTotal
@@ -44,7 +49,19 @@ const Home: NextPage = () => {
                     transition: 'background .9s ease'
                 }}
             >
-                <Header bg={th.bg} onOpenSettings={app.openSettings} />
+                <Header
+                    bg={th.bg}
+                    onOpenSettings={app.openSettings}
+                    pip={{
+                        supported: pip.supported,
+                        open: !!pip.win,
+                        // Audio is unlocked here, on the click, because browsers only allow it after a user gesture.
+                        onToggle: () => {
+                            prepareAudio()
+                            pip.toggle()
+                        }
+                    }}
+                />
                 <main className="main">
                     <TimerPanel app={app} />
                     <div className={'col-right ' + (s.view === 'timer' ? 'nv-hide' : '')}>
@@ -55,6 +72,7 @@ const Home: NextPage = () => {
                 <NavBar view={s.view} bg={th.bg} onChange={app.setView} />
                 <SettingsDialog app={app} />
                 <Toast message={s.toast} />
+                {pip.win && createPortal(<MiniTimer app={app} win={pip.win} />, pip.win.document.body)}
             </div>
         </>
     )
